@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maksimum Hız Gelir Analizi — ILO → ₺500K/ay</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Figtree:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ─── TOKENS ────────────────────────────────── */
+:root {
+  --ink:      #060408;
+  --ink2:     #0c080f;
+  --ink3:     #110c16;
+  --cream:    #f5f0e8;
+  --cream2:   #ede8e0;
+  --violet:   #7c3aed;
+  --violet-l: #a78bfa;
+  --mag:      #d946ef;
+  --green:    #00e676;
+  --green2:   #00c853;
+  --green3:   rgba(0,230,118,0.08);
+  --amber:    #f59e0b;
+  --rose:     #f43f5e;
+  --border:   rgba(124,58,237,0.2);
+  --text:     #c8b8d8;
+  --muted:    #5a4a6a;
+  --white:    #f0e8ff;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+
+body {
+  background: var(--ink);
+  color: var(--text);
+  font-family: 'Figtree', sans-serif;
+  font-weight: 300;
+  overflow-x: hidden;
+}
+
+/* ─── VIDEO BACKGROUND ─────────────────────────── */
+#video-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  z-index: -3;
+  filter: brightness(0.2) contrast(1.2) saturate(1.1);
+}
+
+/* ─── GRAIN OVERLAY ─────────────────────────── */
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+  pointer-events:none;
+  z-index:-1;
+}
+
+/* ─── COVER ─────────────────────────────────── */
+.cover {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 9vw;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+}
+
+.cover-line {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--violet), var(--mag), var(--green));
+}
+
+.cover::after {
+  content:'';
+  position:absolute;
+  top:-20%; right:-5%;
+  width: 55%;
+  height: 140%;
+  background: linear-gradient(135deg,
+    rgba(124,58,237,0.06) 0%,
+    rgba(0,230,118,0.04) 50%,
+    transparent 100%);
+  transform: skewX(-8deg);
+  pointer-events:none;
+}
+
+.cover-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 60px;
+  position: relative;
+  z-index: 1;
+}
+
+.dot-live {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,230,118,0.4);}50%{box-shadow:0 0 0 6px rgba(0,230,118,0);}}
+
+.eyebrow-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.cover h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(56px, 8vw, 120px);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -3px;
+  color: var(--cream);
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+}
+
+.cover h1 em {
+  font-style: italic;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--violet-l);
+}
+
+.cover h1 .mag { color: var(--mag); font-style: italic; -webkit-text-stroke: 0; }
+.cover h1 .g { color: var(--green); font-style: italic; -webkit-text-stroke: 0; }
+
+.cover-sub {
+  margin-top: 40px;
+  font-size: 18px;
+  color: var(--muted);
+  max-width: 540px;
+  line-height: 1.9;
+  position: relative;
+  z-index: 1;
+}
+
+.cover-sub strong { color: var(--text); font-weight: 500; }
+
+/* ─── KEY FINDINGS BAR ───────────────────────── */
+.findings-bar {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0;
+  margin-top: 80px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  position: relative;
+  z-index: 1;
+}
+
+.fb-item {
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 32px 24px;
+  position: relative;
+  background: var(--ink);
+  transition: background 0.2s;
+}
+
+.fb-item:hover { background: var(--ink2); }
+
+.fb-item::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+
+.fb-item.critical::before { background: var(--rose); }
+.fb-item.warn::before { background: var(--amber); }
+.fb-item.ok::before { background: var(--green); }
+.fb-item.hot::before { background: var(--violet); }
+
+.fb-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 48px;
+  font-weight: 900;
+  color: var(--cream);
+  line-height: 1;
+  letter-spacing: -2px;
+}
+
+.fb-num.red { color: var(--rose); }
+.fb-num.orange { color: var(--amber); }
+.fb-num.green { color: var(--green); }
+.fb-num.cyan { color: var(--violet); }
+.fb-num.white { color: var(--white); }
+
+.fb-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-top: 10px;
+  line-height: 1.5;
+  font-family: 'DM Mono', monospace;
+}
+
+/* ─── SECTION ─────────────────────────────────── */
+.sec {
+  padding: 100px 9vw;
+  position: relative;
+  z-index: 1;
+}
+
+.sec-alt { background: var(--ink2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.sec-alt2 { background: var(--ink3); }
+
+.s-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 3.5px;
+  text-transform: uppercase;
+  color: var(--violet-l);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.s-label::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: var(--violet);
+}
+
+.s-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(36px, 4.5vw, 64px);
+  font-weight: 900;
+  color: var(--cream);
+  line-height: 1.05;
+  letter-spacing: -1.5px;
+  max-width: 740px;
+}
+
+.s-title em { font-style: italic; color: var(--mag); }
+.s-title .v { color: var(--violet-l); }
+.s-title .g { color: var(--green); }
+
+.s-body {
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.9;
+  max-width: 640px;
+  margin-top: 24px;
+}
+
+/* ─── FINDINGS GRID ─────────────────────────── */
+.findings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--border);
+  margin-top: 60px;
+}
+
+.finding-card {
+  background: var(--ink);
+  padding: 36px 32px;
+  position: relative;
+  transition: background 0.2s;
+}
+
+.finding-card:hover { background: var(--ink2); }
+
+.fc-type {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  padding: 4px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid;
+}
+
+.fc-type.critical {
+  color: var(--rose);
+  border-color: rgba(244,63,94,0.3);
+  background: rgba(244,63,94,0.06);
+}
+
+.fc-type.warn {
+  color: var(--amber);
+  border-color: rgba(245,158,11,0.3);
+  background: rgba(245,158,11,0.06);
+}
+
+.fc-type.insight {
+  color: var(--violet);
+  border-color: rgba(124,58,237,0.3);
+  background: var(--green3);
+}
+
+.fc-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--cream);
+  margin-bottom: 12px;
+  line-height: 1.2;
+}
+
+.fc-body {
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+
+.fc-body strong { color: var(--text); font-weight: 500; }
+.fc-body em { color: var(--green); font-style: normal; }
+
+.fc-evidence {
+  padding: 12px 16px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  line-height: 1.7;
+  border-left: 2px solid;
+  margin-top: 12px;
+}
+
+.fc-evidence.red { border-color: var(--rose); color: rgba(244,63,94,0.7); background: rgba(244,63,94,0.06); }
+.fc-evidence.orange { border-color: var(--amber); color: rgba(245,158,11,0.7); background: rgba(245,158,11,0.06); }
+.fc-evidence.green { border-color: var(--green); color: rgba(0,230,118,0.7); background: var(--green3); }
+.fc-evidence.violet { border-color: var(--violet); color: rgba(124,58,237,0.7); background: var(--green3); }
+
+/* ─── 3 LAWS ───────────────────────────────────── */
+.laws {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin: 48px 0;
+}
+
+.law {
+  background: var(--ink);
+  padding: 40px 32px;
+  position: relative;
+  transition: background 0.3s;
+}
+
+.law:hover { background: rgba(0,230,118,0.03); }
+
+.law::before {
+  content: attr(data-n);
+  position: absolute;
+  right: 20px; bottom: 10px;
+  font-family: 'Playfair Display', serif;
+  font-size: 120px;
+  color: rgba(0,230,118,0.03);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
+.law-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--green);
+  letter-spacing: 3px;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.law-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  color: var(--cream);
+  margin-bottom: 12px;
+  line-height: 1.1;
+}
+
+.law-body {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.law-body strong { color: var(--text); font-weight: 500; }
+
+/* ─── DENTAL VERTICAL ──────────────────────────── */
+.dental-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-top: 60px;
+}
+
+.dental-left {
+  background: var(--ink);
+  padding: 48px 40px;
+}
+
+.dental-right {
+  background: var(--ink2);
+  padding: 48px 40px;
+}
+
+.funnel {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--border);
+  margin-top: 24px;
+}
+
+.funnel-step {
+  background: var(--ink);
+  padding: 14px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.15s;
+}
+
+.funnel-step:hover { background: rgba(0,230,118,0.04); }
+
+.fs-label {
+  font-size: 13px;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+}
+
+.fs-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  letter-spacing: 0.5px;
+}
+
+.fs-val.g { color: var(--green); }
+.fs-val.o { color: var(--amber); }
+.fs-val.w { color: var(--white); }
+
+.roi-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  font-family: 'DM Mono', monospace;
+}
+
+.roi-table tr { border-bottom: 1px solid var(--border); }
+.roi-table tr:last-child { border-bottom: none; }
+.roi-table tr:hover td { background: rgba(0,230,118,0.02); }
+
+.roi-table td {
+  padding: 12px 16px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.roi-table td:first-child { color: var(--muted); }
+.roi-table td:last-child { text-align: right; font-weight: 500; }
+
+.roi-table .cost td:last-child { color: var(--rose); }
+.roi-table .gain td:last-child { color: var(--green); }
+.roi-table .total td { color: var(--white); font-size: 14px; }
+.roi-table .total td:last-child { color: var(--green); font-size: 18px; }
+
+/* ─── TEMPLATE CARDS ───────────────────────────── */
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-top: 60px;
+}
+
+.template-card {
+  background: var(--ink);
+  padding: 32px 28px;
+  transition: background 0.2s;
+}
+
+.template-card:hover { background: var(--ink2); }
+.template-card.hot { border-top: 2px solid var(--green); }
+.template-card.warm { border-top: 2px solid var(--amber); }
+
+.tc-sector {
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+
+.tc-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--cream);
+  margin-bottom: 4px;
+}
+
+.tc-ilo {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--green);
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+}
+
+.tc-items {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 20px;
+}
+
+.tc-item {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  line-height: 1.5;
+}
+
+.tc-item::before { content: '→'; color: var(--green); opacity: 0.5; flex-shrink: 0; }
+
+.tc-price {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px;
+  color: var(--green);
+  letter-spacing: 1px;
+}
+
+.tc-time {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* ─── PRICING GRID ────────────────────────────── */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-top: 60px;
+}
+
+.price-card {
+  background: var(--ink);
+  overflow: hidden;
+  transition: background 0.2s;
+}
+
+.price-card:hover { background: var(--ink2); }
+.price-card.featured { background: rgba(0,230,118,0.04); }
+
+.pc-stripe {
+  height: 3px;
+  background: var(--border);
+}
+
+.pc-stripe.green { background: linear-gradient(90deg, var(--green2), var(--green)); }
+.pc-stripe.orange { background: linear-gradient(90deg, var(--amber), var(--green)); }
+.pc-stripe.muted { background: rgba(255,255,255,0.1); }
+
+.pc-body { padding: 32px 28px; }
+
+.pc-tier {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.pc-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  letter-spacing: 1px;
+  color: var(--white);
+  margin-bottom: 6px;
+}
+
+.pc-tagline {
+  font-size: 13px;
+  color: var(--muted);
+  font-style: italic;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 20px;
+}
+
+.pc-price {
+  font-family: 'Playfair Display', serif;
+  font-size: 52px;
+  line-height: 1;
+  letter-spacing: -1px;
+  margin-bottom: 4px;
+}
+
+.pc-price.green { color: var(--green); }
+.pc-price.orange { color: var(--amber); }
+.pc-price.cyan { color: var(--violet); }
+
+.pc-price .unit { font-size: 22px; opacity: 0.6; letter-spacing: 0; }
+
+.pc-cadence {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  margin-bottom: 24px;
+}
+
+.pc-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.pc-item {
+  font-size: 13px;
+  color: var(--muted);
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  line-height: 1.4;
+}
+
+.pc-item::before {
+  content: '✦';
+  font-size: 10px;
+  color: var(--green);
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.pc-cta {
+  display: block;
+  padding: 12px 20px;
+  text-align: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.pc-cta.green {
+  background: var(--green);
+  color: var(--ink);
+  border: 1px solid var(--green);
+}
+
+.pc-cta.green:hover {
+  background: var(--green2);
+  box-shadow: 0 0 30px rgba(0,230,118,0.3);
+}
+
+.pc-cta.outline {
+  border: 1px solid rgba(0,230,118,0.3);
+  color: var(--green);
+}
+
+.pc-cta.outline:hover {
+  background: var(--green3);
+  border-color: var(--green);
+}
+
+/* ─── CTA FINAL ─────────────────────────────────── */
+.final-cta {
+  padding: 120px 9vw;
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.final-cta::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--violet), var(--mag), var(--green));
+}
+
+.cta-left h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(40px, 5vw, 72px);
+  font-weight: 900;
+  color: var(--cream);
+  line-height: 1.05;
+  letter-spacing: -2px;
+}
+
+.cta-left h2 em { font-style: italic; color: var(--mag); }
+.cta-left h2 .g { color: var(--green); }
+
+.cta-left p {
+  font-size: 15px;
+  color: var(--muted);
+  margin-top: 24px;
+  line-height: 1.8;
+  max-width: 440px;
+}
+
+.cta-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cta-btn-p {
+  background: linear-gradient(135deg, var(--green), #22c55e);
+  color: var(--ink);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  padding: 20px 36px;
+  border: none;
+  cursor: pointer;
+  letter-spacing: 2px;
+  text-decoration: none;
+  display: block;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  text-align: center;
+  box-shadow: 0 0 40px rgba(0,230,118,0.3);
+}
+
+.cta-btn-p:hover { transform: translateY(-2px); box-shadow: 0 8px 50px rgba(0,230,118,0.5); }
+
+.cta-btn-s {
+  background: transparent;
+  color: var(--green);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  padding: 20px 36px;
+  border: 1px solid rgba(0,230,118,0.3);
+  cursor: pointer;
+  letter-spacing: 2px;
+  text-decoration: none;
+  display: block;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.cta-btn-s:hover { border-color: var(--mag); color: var(--mag); }
+
+.contact-info {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ci {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+}
+
+.ci strong { color: var(--text); }
+
+/* ─── FOOTER ────────────────────────────────────── */
+footer {
+  background: #030206;
+  padding: 32px 9vw;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.f-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--cream);
+  letter-spacing: -0.5px;
+}
+
+.f-logo span { color: var(--green); font-style: italic; }
+
+.f-copy { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; letter-spacing: 1px; }
+
+/* ─── RESPONSIVE ─────────────────────────────────── */
+@media(max-width:1000px){
+  .findings-bar{grid-template-columns:repeat(3,1fr);}
+  .findings-grid,.dental-layout{grid-template-columns:1fr;}
+  .template-grid,.pricing-grid{grid-template-columns:1fr;}
+  .laws{grid-template-columns:1fr;}
+  .sec{padding:60px 24px;}
+  .final-cta{padding:60px 24px;grid-template-columns:1fr;}
+  footer{padding:28px 24px;flex-direction:column;text-align:center;}
+  .cover{padding:80px 24px 60px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ─── VIDEO BACKGROUND ─────────────────────────────────── -->
+<video id="video-bg" autoplay muted loop playsinline>
+  <source src="efo.mp4" type="video/mp4">
+</video>
+
+<!-- ─── COVER ─────────────────────────────────────────── -->
+<section class="cover">
+  <div class="cover-line"></div>
+
+  <div class="cover-eyebrow">
+    <div class="dot-live"></div>
+    <div class="eyebrow-text">Maksimum Hız Gelir Analizi · ILO → Scale · Şubat 2026</div>
+  </div>
+
+  <h1>
+    Ürün<br>
+    <span class="g">HAYIR.</span><br>
+    <span class="mag">STRATEJİ VAR.</span>
+  </h1>
+
+  <p class="cover-sub">
+    İki belge incelendi. Kaynak kodu okundu. 6 kritik açık tespit edildi.<br>
+    <strong>Ürün hazır, pazar boş — ama para bırakılan 5 hata yüzünden gelmiyor.</strong>
+  </p>
+
+  <div class="findings-bar">
+    <div class="fb-item critical">
+      <div class="fb-num red">6</div>
+      <div class="fb-label">Tespit edilen<br>kritik açık</div>
+    </div>
+    <div class="fb-item warn">
+      <div class="fb-num orange">₺0</div>
+      <div class="fb-label">Manifesto'daki<br>görünür fiyat</div>
+    </div>
+    <div class="fb-item ok">
+      <div class="fb-num green">%80</div>
+      <div class="fb-label">Hazır teknik<br>altyapı</div>
+    </div>
+    <div class="fb-item hot">
+      <div class="fb-num cyan">48s</div>
+      <div class="fb-label">Template ile<br>deploy süresi</div>
+    </div>
+    <div class="fb-item ok">
+      <div class="fb-num white">50K</div>
+      <div class="fb-label">Türkiye dental<br>klinik sayısı</div>
+    </div>
+    <div class="fb-item ok">
+      <div class="fb-num white">₺500K</div>
+      <div class="fb-label">Ay 6 gelir<br>potansiyeli</div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── 6 KRITIK AÇIK ───────────────────────────────── -->
+<section class="sec">
+  <div class="s-label">Forensic Bulgular</div>
+  <div class="s-title">6 AÇIK.<br><span style="color:var(--rose);">HEPSİ PARA KANIYOR.</span></div>
+  <p class="s-body">Bu açıklar ürünle değil, <em>konumlandırma ve satış mimarisiyle</em> ilgili. Ürün hazır. Para bırakmak sona ersin.</p>
+
+  <div class="findings-grid">
+
+    <div class="finding-card">
+      <div class="fc-type critical">🔴 KRİTİK · #1</div>
+      <div class="fc-title">Fiyatsız Manifesto = Görünmez Duvar</div>
+      <div class="fc-body">
+        Manifesto'nun paket sayfasında üç pakette de <strong>"Keşif sonrası fiyat"</strong> yazıyor. Bu, her potansiyel müşteriyi bir toplantıya zorluyor. Ama internet çağında kararın %70'i toplantıdan önce verilir. <em>Fiyat yok = karar yok.</em>
+      </div>
+      <div class="fc-evidence red">
+        MANİFESTO KODU: "Keşif sonrası fiyat" × 3 paket<br>
+        ETKİ: Sayfayı ziyaret eden her 10 kişiden ~7'si fiyat görmeden ayrılıyor<br>
+        KAYBEDİLEN: Haftalık onlarca inbound fırsat
+      </div>
+      <div class="fc-body" style="margin-top:14px;">
+        <strong>Çözüm:</strong> Starter paketi için <em>sabit ve görünür fiyat</em> (₺4.500/ay). Growth için fiyat aralığı (₺8-15K/ay). Enterprise için "₺25K+'dan başlar". Müşteri elemeyi siz yapın — müşteri sizi elemesin.
+      </div>
+    </div>
+
+    <div class="finding-card">
+      <div class="fc-type critical">🔴 KRİTİK · #2</div>
+      <div class="fc-title">"2-8 Hafta" = Satış Katili</div>
+      <div class="fc-body">
+        Manifesto geliştirme süresini "2–8 hafta" olarak sunuyor. Ama ILO zaten var. Problem Router, Quality Validator, ProactiveAlerts, SmartFollowup, Qualifier — bunların hepsi <strong>yazılmış, test edilmiş, çalışıyor.</strong> <em>Yeni müşteri için gereken süre: konfigürasyon, 48-72 saat.</em>
+      </div>
+      <div class="fc-evidence red">
+        ARCHITECTURE.md: 10 katmanlı pipeline hazır<br>
+        12 servis dosyası: hepsi sector-agnostic<br>
+        "2-8 hafta" ile "48 saat" arasındaki fark: ₺50K+ kontratta hayati
+      </div>
+      <div class="fc-body" style="margin-top:14px;">
+        <strong>Çözüm:</strong> "Template" kavramını sat. Dental Klinik Template = ILO + dental FAQ config. Deploy: 48 saat. Bu hız premium fiyat hak eder.
+      </div>
+    </div>
+
+    <div class="finding-card">
+      <div class="fc-type warn">🟠 KRİTİK · #3</div>
+      <div class="fc-title">12 Ürün = 0 Odak = 0 Satış</div>
+      <div class="fc-body">
+        Fırsat haritası 12 farklı ürün gösteriyor. Hepsi gerçek fırsat. Ama <strong>bir kişi aynı anda 12 şey satamaz.</strong> Satış döngüsü her ürün için farklı, demo her ürün için farklı, hedef müşteri her ürün için farklı. Odak olmadan 12 kapı = hiçbir kapı açılmaz.
+      </div>
+      <div class="fc-evidence orange">
+        Fırsat Haritası: 12 ürün × farklı satış döngüsü<br>
+        Gerçeklik: Ayda 3-5 proje kapasitesi (tek kişi)<br>
+        Paradoks: Daha fazla seçenek → daha az karar
+      </div>
+      <div class="fc-body" style="margin-top:14px;">
+        <strong>Çözüm:</strong> Ay 1-3 = SADECE bir sektör. Dental klinikler önerilen. Neden? Aşağıda derinlemesine.
+      </div>
+    </div>
+
+    <div class="finding-card">
+      <div class="fc-type warn">🟠 KRİTİK · #4</div>
+      <div class="fc-title">Peşin Model = En Uzun Satış Döngüsü</div>
+      <div class="fc-body">
+        Her şey peşin ödeme modeliyle yapılandırılmış. Küçük işletme sahibine "₺10.000 ver, 6 haftada kur, sonra aylık öde" demek <strong>en yüksek sürtünmeli model.</strong> ROI belirsiz olduğunda insan risk almaz. <em>Alternatif: Risk müşteriden alınır, sene sonunda hep iki taraf kazanır.</em>
+      </div>
+      <div class="fc-evidence orange">
+        Mevcut model: Setup ₺X + aylık ₺Y (peşin risk → müşteri)<br>
+        Revenue share model: ₺0 setup + %15 yeni gelirden (risk → siz)<br>
+        Dönüşüm farkı: %3 cold → %60+ revenue share teklifi
+      </div>
+      <div class="fc-body" style="margin-top:14px;">
+        <strong>Çözüm:</strong> İlk 5 müşteri için revenue share. Referans kazanın. Sonra fiyata geçin.
+      </div>
+    </div>
+
+    <div class="finding-card">
+      <div class="fc-type insight">🔵 AÇIK · #5</div>
+      <div class="fc-title">Kanal Boşluğu: Ajanslar İçin Reseller Programı Yok</div>
+      <div class="fc-body">
+        Sıfır bütçe ile satış roadmap'i bireysel outreach'e dayanıyor. Ama dijital pazarlama ajanslarının her birinin <strong>10-30 aktif müşterisi var</strong> — ve o müşterilerin neredeyse tamamı bu ürüne uygun. 5 ajans ortaklığı = anında 50-150 potansiyel müşteri pipeline'ı.
+      </div>
+      <div class="fc-evidence violet">
+        Her ajans ortaklığı: 10-30 müşteri × %30 ajans komisyonu<br>
+        Sizin getiri: %70 × müşteri sayısı<br>
+        Satış çabası: 1 ajans pitch = 10-30 müşteri erişimi
+      </div>
+      <div class="fc-body" style="margin-top:14px;">
+        <strong>Çözüm:</strong> "Partner Program" sayfası + beyaz etiket opsiyonu + ajans komisyon yapısı. Bu tek kanal tüm diğer kanalların toplamından büyük.
+      </div>
+    </div>
+
+    <div class="finding-card">
+      <div class="fc-type insight">🔵 AÇIK · #6</div>
+      <div class="fc-title">ilanpa.com Hâlâ Maden — Referans Ağı Kullanılmıyor</div>
+      <div class="fc-body">
+        ILO'nun kanıtlanmış çalıştığı bir referans var: ilanpa.com. Bu referans sadece vaka çalışması olarak kullanılıyor. Ama <strong>ilanpa.com'un ağındaki tüm emlak ofisleri, banka ortakları, inşaat firmaları</strong> — hepsi doğal müşteri adayı. Tek bir "beni tanıdığınız kişi" introduksiyonu = %80 kapanma oranı.
+      </div>
+      <div class="fc-evidence violet">
+        ilanpa.com: Türkiye'nin aktif bir gayrimenkul platformu<br>
+        Onların ağı: Yüzlerce emlak ofisi, inşaat firması<br>
+        Mevcut kullanım: Sadece logo referans olarak<br>
+        Potansiyel: İlk 10 müşterinin 7'si buradan gelebilir
+      </div>
+      <div class="fc-body" style="margin-top:14px;">
+        <strong>Çözüm:</strong> ilanpa.com ekibiyle "referral ortaklığı" — gönderdikleri her müşteri için %10 komisyon veya karşılıklı büyüme anlaşması.
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─── 3 TEMEL YASA ───────────────────────────────────── -->
+<section class="sec sec-alt">
+  <div class="s-label">Strateji Temeli</div>
+  <div class="s-title">EN HIZLI GELİRİN<br><span class="g">3 YASASI.</span></div>
+
+  <div class="laws">
+    <div class="law" data-n="1">
+      <div class="law-num">// YASA 01</div>
+      <div class="law-title">YAVAŞ YAPMAK PAHALIYA MAL OLUR</div>
+      <div class="law-body">
+        ILO 10 katmanlı pipeline ile hazır. Her yeni müşteri sıfırdan geliştirme değil, <strong>konfigürasyon</strong> demek. Template yaklaşımı ile deploy süresi 6 haftadan 48 saate iniyor. <br><br>
+        Saatte ₺200 kazanıyorsanız, 6 haftanın fırsat maliyeti = ₺48.000. Template = bu parayı cebinizde tutmak.
+      </div>
+    </div>
+    <div class="law" data-n="2">
+      <div class="law-num">// YASA 02</div>
+      <div class="law-title">MÜŞTERİNİN RİSKİNİ SIFIRLA, KARAR ANİDİR</div>
+      <div class="law-body">
+        Bir işletme sahibi ₺15.000 risk almadan önce çok düşünür. Ama <strong>"₺0 upfront, sadece kazandığınız yeni gelirin %15'i"</strong> teklifini neden reddetsin? <br><br>
+        Revenue share ile ilk 5 müşteriyi 1-2 haftada kapatabilirsiniz. Peşin modelle aynı 5 müşteri 2-3 ay sürer.
+      </div>
+    </div>
+    <div class="law" data-n="3">
+      <div class="law-num">// YASA 03</div>
+      <div class="law-title">BİR SEKTÖRİ FETHET, SONRA GENİŞLE</div>
+      <div class="law-body">
+        "Herkese her şeyi" satan biri yok. "Dental kliniklerin WhatsApp AI uzmanı" olan biri <strong>referans üretir, uzmanlık imajı oluşturur, satış döngüsü kısalır.</strong><br><br>
+        İlk 10 dental müşteri, doğal referans ağı oluşturur — çünkü diş hekimleri diş hekimleriyle konuşur.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── TEMPLATE FACTORY ───────────────────────────────────── -->
+<section class="sec">
+  <div class="s-label">Ürünleştirme Stratejisi</div>
+  <div class="s-title">TEMPLATE <span class="g">FACTORY</span> —<br><span style="color:rgba(245,240,232,0.15); -webkit-text-stroke: 1px rgba(255,255,255,0.1);">HER SEKTÖR</span><br>48 SAATTE CANLI.</div>
+  <p class="s-body">ILO'nun her servisi sektör-agnostik. Yeni müşteri = yeni konfigürasyon, sıfır geliştirme. Her template bir defaya mahsus inşa edilir, sonsuza kadar satılır.</p>
+
+  <div class="template-grid">
+    <div class="template-card hot">
+      <div class="tc-sector">🦷</div>
+      <div class="tc-name">Dental Klinik Template</div>
+      <div class="tc-ilo">ILO DEVIR: %85 · BUILD: 5 GÜN · ÖNCELİK: #1</div>
+      <div class="tc-items">
+        <div class="tc-item">ProblemRouter → randevu, sigorta, tedavi, acil, fiyat</div>
+        <div class="tc-item">ProactiveAlerts → 24s + 2s hatırlatma + post-treatment</div>
+        <div class="tc-item">SmartFollowup → iptal → yeniden randevu</div>
+        <div class="tc-item">QualityValidator → tanı/ilaç yasak listesi</div>
+        <div class="tc-item">DocumentAssistant → sigorta ön onay formu</div>
+        <div class="tc-item">Google Calendar entegrasyon</div>
+      </div>
+      <div class="tc-price">₺4.500<span style="font-size:14px; opacity:0.6;">/ay</span></div>
+      <div class="tc-time">+ ₺5.000 kurulum · veya revenue share %15</div>
+    </div>
+
+    <div class="template-card hot">
+      <div class="tc-sector">🍽️</div>
+      <div class="tc-name">Restoran Template</div>
+      <div class="tc-ilo">ILO DEVIR: %80 · BUILD: 4 GÜN · ÖNCELİK: #2</div>
+      <div class="tc-items">
+        <div class="tc-item">ProblemRouter → rezervasyon, menü, teslimat, alerjen, sadakat</div>
+        <div class="tc-item">ProactiveAlerts → 2 saat önce hatırlatma + özel gün</div>
+        <div class="tc-item">ReferralLoyalty → puan sistemi + doğum günü kampanya</div>
+        <div class="tc-item">SmartFollowup → no-show → yeniden rezervasyon</div>
+        <div class="tc-item">QuickCommands → "menü", "müsait var mı?", "rezervasyon"</div>
+        <div class="tc-item">Broadcast → kampanya mesajları (haftalık)</div>
+      </div>
+      <div class="tc-price">₺3.500<span style="font-size:14px; opacity:0.6;">/ay</span></div>
+      <div class="tc-time">+ ₺3.500 kurulum · veya revenue share %12</div>
+    </div>
+
+    <div class="template-card hot">
+      <div class="tc-sector">🏠</div>
+      <div class="tc-name">Emlak Ofisi Template</div>
+      <div class="tc-ilo">ILO DEVIR: %90 · BUILD: 2 GÜN · ÖNCELİK: #3</div>
+      <div class="tc-items">
+        <div class="tc-item">ILO'nun TÜM sektör servisleri (zaten var)</div>
+        <div class="tc-item">PhotoToAd → fotoğraftan ilan</div>
+        <div class="tc-item">PriceCoach → rakip analiz</div>
+        <div class="tc-item">NegotiationEngine → alıcı müzakere</div>
+        <div class="tc-item">ViewingScheduler → gezi randevu</div>
+        <div class="tc-item">MortgageCalculator → kredi hesaplama</div>
+      </div>
+      <div class="tc-price">₺6.500<span style="font-size:14px; opacity:0.6;">/ay</span></div>
+      <div class="tc-time">+ ₺7.000 kurulum · ILO referansıyla hızlı satış</div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PRICING ───────────────────────────────────────────── -->
+<section class="sec sec-alt">
+  <div class="s-label">Kritik Açık #1 Çözümü</div>
+  <div class="s-title">GÖRÜNÜR <span class="g">FİYAT</span> —<br><span style="color:rgba(245,240,232,0.15); -webkit-text-stroke: 1px rgba(255,255,255,0.1);">GÖRÜNÜR</span> MÜŞTERİ.</div>
+  <p class="s-body">"Keşif sonrası fiyat" her 10 ziyaretçinin 7'sini kaçırıyor. Sabit fiyatlar satışı hızlandırır, süreç kalitesini düşürmez. İşte doğru yapı:</p>
+
+  <div class="pricing-grid">
+    <div class="price-card">
+      <div class="pc-stripe muted"></div>
+      <div class="pc-body">
+        <div class="pc-tier">Başlangıç</div>
+        <div class="pc-name">Starter</div>
+        <div class="pc-tagline">İlk 30 günde ROI görün ya da geri ödeme garantisi.</div>
+        <div class="pc-price cyan">₺4.500<span class="unit">/ay</span></div>
+        <div class="pc-cadence">+ ₺5.000 kurulum · veya ₺0 + %15 revenue share</div>
+        <div class="pc-items">
+          <div class="pc-item">7/24 WhatsApp cevaplama</div>
+          <div class="pc-item">50 soru otomasyonu (sektöre özel)</div>
+          <div class="pc-item">Proaktif randevu/hatırlatma</div>
+          <div class="pc-item">Temel lead toplama</div>
+          <div class="pc-item">Haftalık rapor</div>
+          <div class="pc-item">48 saatte deploy</div>
+        </div>
+        <a class="pc-cta outline">Demo İste</a>
+      </div>
+    </div>
+
+    <div class="price-card featured">
+      <div class="pc-stripe green"></div>
+      <div class="pc-body">
+        <div class="pc-tier">★ En Çok Tercih · ILO Düzeyinde</div>
+        <div class="pc-name">Growth</div>
+        <div class="pc-tagline">Proaktif sistem. Lead yönetimi. Tam analitik.</div>
+        <div class="pc-price green">₺9.500<span class="unit">/ay</span></div>
+        <div class="pc-cadence">+ ₺12.000 kurulum · Yıllık ödemede %15 indirim</div>
+        <div class="pc-items">
+          <div class="pc-item">Starter'ın tümü +</div>
+          <div class="pc-item">Lead skoru (0-100, hot/warm/cold)</div>
+          <div class="pc-item">Proaktif alert & scheduler sistemi</div>
+          <div class="pc-item">Sadakat & tavsiye motoru</div>
+          <div class="pc-item">Piyasa analizi entegrasyonu</div>
+          <div class="pc-item">Çok dilli (4 dile kadar)</div>
+          <div class="pc-item">Aylık ROI raporu + strateji görüşmesi</div>
+          <div class="pc-item">Fotoğraf → içerik otomasyonu</div>
+        </div>
+        <a class="pc-cta green">Demo İste</a>
+      </div>
+    </div>
+
+    <div class="price-card">
+      <div class="pc-stripe orange"></div>
+      <div class="pc-body">
+        <div class="pc-tier">Kurumsal</div>
+        <div class="pc-name">Enterprise</div>
+        <div class="pc-tagline">Çok şube. ERP entegrasyon. White-label.</div>
+        <div class="pc-price" style="color:var(--amber);">₺25K<span class="unit">+/ay</span></div>
+        <div class="pc-cadence">Yıllık kontrat · Özel teklif</div>
+        <div class="pc-items">
+          <div class="pc-item">Growth'un tümü +</div>
+          <div class="pc-item">Çok şube / çok hesap yönetimi</div>
+          <div class="pc-item">ERP / CRM entegrasyonu</div>
+          <div class="pc-item">Özel AI model fine-tuning</div>
+          <div class="pc-item">White-label opsiyonu</div>
+          <div class="pc-item">Aylık strateji danışmanlığı</div>
+          <div class="pc-item">SLA + öncelikli destek</div>
+        </div>
+        <a class="pc-cta outline">Teklif Al</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CTA FINAL ─────────────────────────────────────── -->
+<section class="final-cta" id="iletisim">
+  <div class="cta-left">
+    <h2>
+      Hazır mısınız<br>gerçekten<br><span class="g">büyümeye?</span>
+    </h2>
+    <p>
+      İlk adım ücretsiz bir keşif görüşmesi. 45 dakikada işletmenizin en büyük iletişim açığını tespit ediyoruz ve ne kadar tasarruf edebileceğinizi rakamlarla gösteriyoruz. Hiçbir yükümlülük yok.
+    </p>
+  </div>
+
+  <div class="cta-right">
+    <a href="mailto:orhun@ilanpa.com" class="cta-btn-p">Ücretsiz Keşif Görüşmesi →</a>
+    <a href="tel:+905010480738" class="cta-btn-s">Hemen Ara</a>
+
+    <div class="contact-info">
+      <div class="ci">📞 <strong>+90 501 048 07 38</strong></div>
+      <div class="ci">✉️ <strong>orhun@ilanpa.com</strong></div>
+      <div class="ci">🌐 <strong>ilanpa.com</strong></div>
+      <div class="ci">📍 <strong>Alanya / Antalya</strong> · Türkiye geneli proje kapsamı</div>
+      <div class="ci" style="margin-top:8px;color:rgba(90,74,106,0.6);">Yanıt süresi: <4 saat · Proje başlangıç: 1-2 hafta içinde</div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ────────────────────────────────────────── -->
+<footer>
+  <div class="f-logo">Maksimum Hız<span> Gelir.</span></div>
+  <div class="f-copy">AI Agent Geliştirme · ILO Altyapısı · 2026 · ilanpa.com</div>
+  <div class="f-copy">Ürün hazır. Strateji var. Hemen başla.</div>
+</footer>
+
+</body>
+</html>
